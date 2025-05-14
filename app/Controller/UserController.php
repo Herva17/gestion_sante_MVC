@@ -15,7 +15,7 @@ class UserController {
                 return;
             }
 
-            // Vérifier les informations dans la base de données
+            // Vérifier les informations dans la base de données via la méthode statique authentifier
             $user = User::authentifier($email, $mot_de_passe);
             if ($user) {
                 // Démarrer une session et stocker les informations utilisateur
@@ -25,11 +25,9 @@ class UserController {
                 $_SESSION['user_prenom'] = $user['prenom'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = $user['role'];
-        
-              
 
                 // Rediriger vers la page d'accueil après connexion
-                header("Location:dashboard");
+                header("Location: dashboard");
                 exit;
             } else {
                 echo "Email ou mot de passe incorrect.";
@@ -40,4 +38,3 @@ class UserController {
         require_once __DIR__ . '/../views/user/login.php';
     }
 }
-?>
