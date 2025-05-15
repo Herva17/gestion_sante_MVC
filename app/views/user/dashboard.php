@@ -1,3 +1,9 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$patients = Patient::getAll();
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -115,7 +121,7 @@
             margin: 10% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 70%;
+            width: 95%;
             border-radius: 8px;
         }
 
@@ -131,6 +137,83 @@
             color: black;
             text-decoration: none;
             cursor: pointer;
+        }
+
+        /* Style renforcé pour les formulaires dans les modals */
+        .modal-content form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-content label {
+            flex: 1 1 100%;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #333;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-content input[type="text"],
+        .modal-content input[type="date"],
+        .modal-content select,
+        .modal-content textarea {
+            flex: 1 1 48%;
+            min-width: 0;
+            padding: 12px;
+            border: 1.5px solid #bdbdbd;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 1em;
+            background: #f9f9f9;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .modal-content textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .modal-content input[type="text"]:focus,
+        .modal-content input[type="date"]:focus,
+        .modal-content select:focus,
+        .modal-content textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 2px #c8f7c5;
+        }
+
+        .modal-content button[type="submit"] {
+            flex: 1 1 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.08);
+        }
+
+        .modal-content button[type="submit"]:hover {
+            background-color: #388e3c;
+            box-shadow: 0 4px 8px rgba(56, 142, 60, 0.12);
+        }
+
+        /* Responsive : 1 colonne sur mobile */
+        @media (max-width: 700px) {
+
+            .modal-content input[type="text"],
+            .modal-content input[type="date"],
+            .modal-content select,
+            .modal-content textarea {
+                flex: 1 1 100%;
+            }
         }
     </style>
 </head>
@@ -160,9 +243,9 @@
                     <select id="consultationPatientId" name="consultationPatientId" required>
                         <!-- Exemple de données statiques -->
                         <option value="">-- Sélectionnez un patient --</option>
-                        <option value="101">Jean Dupont</option>
-                        <option value="102">Marie Curie</option>
-                        <option value="103">Paul Durand</option>
+                        <?php foreach ($patients as $patient): ?>
+                            <option value="<?= htmlspecialchars($patient['id']) ?>"><?= htmlspecialchars($patient['nom'] . ' ' . $patient['prenom']) ?></option>
+                        <?php endforeach; ?>
                     </select>
 
                     <label for="consultationDate">Date de la consultation :</label>
@@ -253,27 +336,27 @@
             <div class="modal-content">
                 <span class="close" onclick="closeModal('patientsModal')">&times;</span>
                 <h2>Gestion des Patients</h2>
-                <form>
+                <form action="patients" method="POST">
                     <label for="patientName">Nom :</label>
-                    <input type="text" id="patientName" name="patientName" required>
+                    <input type="text" id="patientName" name="nom" required>
 
                     <label for="patientPrenom">Prénom :</label>
-                    <input type="text" id="patientPrenom" name="patientPrenom" required>
+                    <input type="text" id="patientPrenom" name="prenom" required>
 
                     <label for="patientSexe">Sexe :</label>
-                    <select id="patientSexe" name="patientSexe" required>
+                    <select id="patientSexe" name="sexe" required>
                         <option value="Homme">Homme</option>
                         <option value="Femme">Femme</option>
                     </select>
 
                     <label for="patientDateNaissance">Date de naissance :</label>
-                    <input type="date" id="patientDateNaissance" name="patientDateNaissance" required>
+                    <input type="date" id="patientDateNaissance" name="date_naissance" required>
 
                     <label for="patientTelephone">Téléphone :</label>
-                    <input type="text" id="patientTelephone" name="patientTelephone" required>
+                    <input type="text" id="patientTelephone" name="telephone" required>
 
                     <label for="patientAdresse">Adresse :</label>
-                    <input type="text" id="patientAdresse" name="patientAdresse" required>
+                    <input type="text" id="patientAdresse" name="adresse" required>
 
                     <button type="submit" class="btn">Enregistrer</button>
                 </form>
@@ -291,28 +374,30 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
+                    <!-- Tableau dynamique -->
                     <tbody>
-                        <!-- Exemple de données statiques -->
-                        <tr>
-                            <td>1</td>
-                            <td>Jean</td>
-                            <td>Dupont</td>
-                            <td>Homme</td>
-                            <td>1990-01-01</td>
-                            <td>+33 6 12 34 56 78</td>
-                            <td>123 Rue de Paris</td>
-                            <td>2025-05-09</td>
-                            <td>
-                                <a href="#" class="btn">Modifier</a>
-                                <a href="#" class="btn" style="background-color: #f44336;">Supprimer</a>
-                            </td>
-                        </tr>
+                        <?php foreach ($patients as $patient): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($patient['id']) ?></td>
+                                <td><?= htmlspecialchars($patient['nom']) ?></td>
+                                <td><?= htmlspecialchars($patient['prenom']) ?></td>
+                                <td><?= htmlspecialchars($patient['sexe']) ?></td>
+                                <td><?= htmlspecialchars($patient['date_naissance']) ?></td>
+                                <td><?= htmlspecialchars($patient['telephone']) ?></td>
+                                <td><?= htmlspecialchars($patient['adresse']) ?></td>
+                                <td><?= htmlspecialchars($patient['created_at']) ?></td>
+                                <td>
+                                    <a href="patients/modifier?id=<?= $patient['id'] ?>" class="btn">Modifier</a>
+                                    <a href="patients/supprimer?id=<?= $patient['id'] ?>" class="btn" style="background-color: #f44336;">Supprimer</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         </div>
 
-       
+
         <!-- Modal pour Statistiques -->
         <div id="statistiquesModal" class="modal">
             <div class="modal-content">
