@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 08, 2025 at 09:22 PM
+-- Generation Time: May 16, 2025 at 02:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,12 +47,20 @@ CREATE TABLE `patients` (
   `id` int(11) NOT NULL,
   `nom` varchar(100) NOT NULL,
   `prenom` varchar(100) NOT NULL,
-  `sexe` enum('masculin','féminin') NOT NULL,
+  `sexe` varchar(50) NOT NULL,
   `date_naissance` date NOT NULL,
   `telephone` varchar(20) DEFAULT NULL,
   `adresse` text DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `patients`
+--
+
+INSERT INTO `patients` (`id`, `nom`, `prenom`, `sexe`, `date_naissance`, `telephone`, `adresse`, `created_at`) VALUES
+(7, 'IRAGI', 'Hervé', 'Homme', '2025-05-12', '0977404036', 'Congo République Démocratique', '2025-05-15 14:59:24'),
+(8, 'JEANNETTE', 'Umutoni', 'Femme', '2025-05-06', '0990674538', 'Congo République Démocratique', '2025-05-16 13:42:01');
 
 -- --------------------------------------------------------
 
@@ -116,7 +124,7 @@ ALTER TABLE `consultations`
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`
