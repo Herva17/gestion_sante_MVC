@@ -3,6 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 $patients = Patient::getAll();
+$consultations = Consultation::getAll();
+$details = Consultation::getAllWithDetails();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -217,6 +219,46 @@ $patients = Patient::getAll();
         }
     </style>
 </head>
+<!-- Modal pour Fiche Consultation -->
+<div id="ficheConsultationModal" class="modal">
+    <div class="modal-content" style="max-width:600px;">
+        <span class="close" onclick="closeModal('ficheConsultationModal')">&times;</span>
+        <div id="ficheConsultationContent">
+            <?php if (isset($_GET['ajax'])): ?>
+                <h2>Fiche de Consultation</h2>
+                <table>
+                    <tr>
+                        <th>Patient</th>
+                        <td><?= htmlspecialchars($consultation['patient_nom'] . ' ' . $consultation['patient_prenom']) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Médecin</th>
+                        <td><?= htmlspecialchars($consultation['user_nom'] . ' ' . $consultation['user_prenom']) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Date</th>
+                        <td><?= htmlspecialchars($consultation['date_cons']) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Symptômes</th>
+                        <td><?= htmlspecialchars($consultation['symptomes']) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Diagnostic</th>
+                        <td><?= htmlspecialchars($consultation['diagnostic']) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Traitement</th>
+                        <td><?= htmlspecialchars($consultation['traitement']) ?></td>
+                    </tr>
+                </table>
+            <?php else: ?>
+                <!-- ... version complète HTML pour l'impression directe ... -->
+            <?php endif; ?>
+        </div>
+        <button class="print-btn" onclick="printFiche()">Imprimer</button>
+    </div>
+</div>
 
 <body>
     <header>
@@ -238,7 +280,7 @@ $patients = Patient::getAll();
             <div class="modal-content">
                 <span class="close" onclick="closeModal('consultationsModal')">&times;</span>
                 <h2>Ajouter une Consultation</h2>
-                <form>
+                <form action="consultations" method="POST">
                     <label for="consultationPatientId">Patient :</label>
                     <select id="consultationPatientId" name="consultationPatientId" required>
                         <!-- Exemple de données statiques -->
@@ -247,10 +289,7 @@ $patients = Patient::getAll();
                             <option value="<?= htmlspecialchars($patient['id']) ?>"><?= htmlspecialchars($patient['nom'] . ' ' . $patient['prenom']) ?></option>
                         <?php endforeach; ?>
                     </select>
-
-                    <label for="consultationDate">Date de la consultation :</label>
-                    <input type="date" id="consultationDate" name="consultationDate" required>
-
+                    <input type="hidden" id="consultationUser" value="<?= htmlspecialchars($_SESSION['user_id']) ?>" name="consultationUser" required>
                     <label for="consultationSymptomes">Symptômes :</label>
                     <textarea id="consultationSymptomes" name="consultationSymptomes" rows="3" required></textarea>
 
@@ -259,7 +298,6 @@ $patients = Patient::getAll();
 
                     <label for="consultationTraitement">Traitement :</label>
                     <textarea id="consultationTraitement" name="consultationTraitement" rows="3" required></textarea>
-
                     <button type="submit" class="btn">Enregistrer</button>
                 </form>
                 <table>
@@ -268,28 +306,30 @@ $patients = Patient::getAll();
                             <th>ID</th>
                             <th>ID Patient</th>
                             <th>ID Médecin</th>
-                            <th>Date</th>
                             <th>Symptômes</th>
                             <th>Diagnostic</th>
                             <th>Traitement</th>
+                            <th>Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Exemple de données statiques -->
-                        <tr>
-                            <td>1</td>
-                            <td>101</td>
-                            <td>201</td>
-                            <td>2025-05-09</td>
-                            <td>Fièvre, toux</td>
-                            <td>Grippe</td>
-                            <td>Paracétamol</td>
-                            <td>
-                                <a href="#" class="btn">Modifier</a>
-                                <a href="#" class="btn" style="background-color: #f44336;">Supprimer</a>
-                            </td>
-                        </tr>
+                        <?php foreach ($consultations as $consultation): ?>
+                            <!-- Exemple de données statiques -->
+                            <tr>
+                                <td><?= htmlspecialchars($consultation['id']) ?></td>
+                                <td><?= htmlspecialchars($consultation['patient_id']) ?></td>
+                                <td><?= htmlspecialchars($consultation['user_id']) ?></td>
+                                <td><?= htmlspecialchars($consultation['symptomes']) ?></td>
+                                <td><?= htmlspecialchars($consultation['diagnostic']) ?></td>
+                                <td><?= htmlspecialchars($consultation['traitement']) ?></td>
+                                <td><?= htmlspecialchars($consultation['date_cons']) ?></td>
+                                <td>
+                                    <a href="" class="btn">Modifier</a>
+                                    <a href="" class="btn" style="background-color: #f44336;">Supprimer</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -300,6 +340,7 @@ $patients = Patient::getAll();
             <h2>Liste des consultations</h2>
             <a href="#" class="btn" onclick="openModal('consultationsModal')">Ajouter une consultation</a>
             <table>
+
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -312,21 +353,23 @@ $patients = Patient::getAll();
                         <th>Actions</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     <!-- Exemple de données statiques -->
-                    <tr>
-                        <td>1</td>
-                        <td>Jean Dupont</td>
-                        <td>Dr. Martin</td>
-                        <td>2025-05-09</td>
-                        <td>Fièvre, toux</td>
-                        <td>Grippe</td>
-                        <td>Paracétamol</td>
-                        <td>
-                            <a href="#" class="btn">Modifier</a>
-                            <a href="#" class="btn" style="background-color: #f44336;">Supprimer</a>
-                        </td>
-                    </tr>
+                    <?php foreach ($details as $lesCons): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($lesCons['id']) ?></< /td>
+                            <td><?= htmlspecialchars($lesCons['patient_nom'] . ' ' . $lesCons['patient_prenom']) ?></td>
+                            <td><?= htmlspecialchars($lesCons['user_nom'] . ' ' . $lesCons['user_prenom']) ?></td>
+                            <td><?= htmlspecialchars($lesCons['date_cons']) ?></td>
+                            <td><?= htmlspecialchars($lesCons['symptomes']) ?></< /</td>
+                            <td><?= htmlspecialchars($lesCons['diagnostic']) ?></td>
+                            <td><?= htmlspecialchars($lesCons['traitement']) ?></td>
+                            <td>
+                                <a href="#" class="btn" style="background-color: #2196F3;" onclick="afficherFicheConsultation(<?= $lesCons['id'] ?>); return false;">Imprimer fiche</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
@@ -387,8 +430,8 @@ $patients = Patient::getAll();
                                 <td><?= htmlspecialchars($patient['adresse']) ?></td>
                                 <td><?= htmlspecialchars($patient['created_at']) ?></td>
                                 <td>
-                                    <a href="patients/modifier?id=<?= $patient['id'] ?>" class="btn">Modifier</a>
-                                    <a href="patients/supprimer?id=<?= $patient['id'] ?>" class="btn" style="background-color: #f44336;">Supprimer</a>
+                                    <a href="" class="btn">Modifier</a>
+                                    <a href="" class="btn" style="background-color: #f44336;">Supprimer</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -414,6 +457,31 @@ $patients = Patient::getAll();
 
             function closeModal(modalId) {
                 document.getElementById(modalId).style.display = "none";
+            }
+        </script>
+        <script>
+            function afficherFicheConsultation(id) {
+                // Appel AJAX pour récupérer la fiche (à adapter selon ton backend)
+                fetch('consultations/imprimer?id=' + id + '&ajax=1')
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('ficheConsultationContent').innerHTML = html;
+                        openModal('ficheConsultationModal');
+                    });
+            }
+
+            function printFiche() {
+                var ficheContent = document.getElementById('ficheConsultationContent').innerHTML;
+                var printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write('<html><head><title>Fiche Consultation</title>');
+                printWindow.document.write('<style>body{font-family:Arial,sans-serif;margin:40px;}h2{color:#4CAF50;}table{width:100%;border-collapse:collapse;margin-top:20px;}td,th{border:1px solid #ddd;padding:8px;}th{background:#f4f4f4;}</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write(ficheContent);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
             }
         </script>
 </body>

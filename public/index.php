@@ -3,6 +3,7 @@ require_once '../config/database.php';
 require_once '../app/Controller/UserController.php';
 require_once '../app/Controller/DashboardController.php';
 require_once '../app/Controller/PatientController.php';
+require_once '../app/Controller/ConsultationController.php';
 
 // Normaliser l'URI
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -24,9 +25,21 @@ if ($uri === '/login') {
 } elseif ($uri === '/patients/modifier' && isset($_GET['id'])) {
     $controller = new PatientController();
     $controller->modifier($_GET['id']);
-} else {
+} elseif ($uri === '/consultations') {
+    $controller = new ConsultationController();
+    $controller->index();
+} elseif ($uri === 'consultations/supprimer' && isset($_GET['id'])) {
+    $controller = new ConsultationController();
+    $controller->supprimer($_GET['id']);
+} elseif ($uri === '/consultations/modifier' && isset($_GET['id'])) {
+    $controller = new ConsultationController();
+    $controller->modifier($_GET['id']);
+}elseif ($uri === '/consultations/imprimer' && isset($_GET['id'])) {
+    $controller = new ConsultationController();
+    $controller->imprimer($_GET['id']);
+}
+ else {
     // Gestion des pages non trouvées
     http_response_code(404);
     echo "Page non trouvée";
 }
-?>

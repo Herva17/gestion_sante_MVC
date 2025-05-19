@@ -60,7 +60,7 @@ public function index() {
             $adresse = isset($_POST['adresse']) ? trim($_POST['adresse']) : '';
 
             if (Patient::modifier($id, $nom, $prenom, $sexe, $date_naissance, $telephone, $adresse)) {
-                header("Location: dashboard");
+                header("Location: /gestion_sante/dashboard");
                 exit;
             } else {
                 echo "Erreur lors de la modification du patient.";
